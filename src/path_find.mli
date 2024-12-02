@@ -5,4 +5,4 @@ open Graph
   Args: pred, graph, source, target
   Returns: the list of arcs that make up the path
 *)
-val get_path: ('a -> bool) -> 'a graph -> id -> id -> 'a arc list
+val get_path: ('a -> bool) -> 'a graph -> id -> id -> 'a arc list option
