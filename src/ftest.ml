@@ -1,4 +1,6 @@
 open Gfile
+open Max_flow
+open Tools
     
 let () =
 
@@ -28,8 +30,12 @@ let () =
   (* Open file *)
   let graph = from_file infile in
 
+  (* Run max flow algorithm *)
+  let int_graph = gmap graph int_of_string in
+  let res = get_max_flow int_graph _source _sink in
+  let res_string = gmap res (fun (a, b) -> Printf.sprintf "%d/%d" a b) in
+
   (* Rewrite the graph that has been read. *)
-  let () = write_file outfile graph in
+  let () = write_file outfile res_string in
 
   ()
-

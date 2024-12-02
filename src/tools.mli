@@ -10,7 +10,9 @@ val clone_nodes: 'a graph -> 'b graph
 *)
 val gmap: 'a graph -> ('a -> 'b) -> 'b graph
 
+val better_gmap: 'a graph -> ('a arc -> 'b arc) -> 'b graph
+
 (*
   Adds n to the value of the arc between id1 and id2. If the arc does not exist, it is created.
 *)
-val add_arc: int graph -> id -> id -> int -> int graph
+(* val add_arc: int graph -> id -> id -> int -> int graph *)

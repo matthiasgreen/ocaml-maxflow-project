@@ -7,4 +7,8 @@ let gmap graph fm =
     e_fold graph (fun acu arc -> new_arc acu {src=arc.src;tgt=arc.tgt;lbl=fm arc.lbl}) (clone_nodes graph)
     
 
-let add_arc: int graph -> id -> id -> int -> int graph = raise Not_found
+let better_gmap graph fm =
+    e_fold graph (fun acu arc -> new_arc acu (fm arc)) (clone_nodes graph)
+
+
+(* let add_arc: int graph -> id -> id -> int -> int graph = failwith "not implemented" *)
