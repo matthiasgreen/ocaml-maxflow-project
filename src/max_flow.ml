@@ -55,3 +55,7 @@ let get_max_flow capacity_gr src tgt =
     (arc.lbl, (Option.get (find_arc capacity_gr arc.src arc.tgt)).lbl)
   )})
 ;;
+
+let get_max_flow_number gr src =
+  List.fold_left (fun total {lbl=(f, _); _} -> total + f) 0 (out_arcs gr src)
+;;
