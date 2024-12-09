@@ -16,47 +16,67 @@ let print_graph graph =
 ;;
 *)
 
+let edge_add_value edge value =
+  {src = edge.src ; lbl = edge.lbl + value ; tgt = edge.tgt}
+
 (* Reverse a given edge i.e. src becomes tgt and tgt bocomes src *)
 let get_reversed_edge edge =
   {src=edge.tgt ; lbl=edge.lbl ; tgt=edge.src}
+
+let get_reversed_edge_with_value edge value =
+  {src=edge.tgt ; lbl=value ; tgt=edge.src}
 
 (* Tell if two edges have the same location i.e. src and tgt are the same *)
 let same_edge_location edge other_edge =
   edge.src = other_edge.src &&
   edge.tgt = other_edge.tgt
 
-(* Remove a value from every edge of a path in a graph *)
-let decrease_on_path graph path value =
-  (* Decrease the input edge depending if it's in the given path or not *)
-  let decrease_edge graph_edge =
-    (* Tell if an edge is the same as the given graph edge *)
-    let same_edge = same_edge_location graph_edge in
-    (* If the given graph edge is a part of the given path *)
-    if List.exists (fun path_edge -> same_edge path_edge) path then
-      {src=graph_edge.src ; lbl=graph_edge.lbl - value ; tgt=graph_edge.tgt}
-    else {src=graph_edge.src ; lbl=graph_edge.lbl ; tgt=graph_edge.tgt}
+let is_in_path edge path =
+  let is_same_edge =
+    same_edge_location edge
   in
-  gmap_arcs graph decrease_edge
-;;
+  List.exists (fun path_edge -> is_same_edge path_edge) path
+
+let is_counter_flow edge path =
+  let is_reversed_edge path_edge =
+    same_edge_location edge (get_reversed_edge path_edge)
+  in
+  List.exists (fun path_edge -> is_reversed_edge path_edge) path
+
+let augment_residual_graph residual_graph augmenting_path augmenting_value =
+  let augment_edge residual_edge =
+    if is_in_path residual_edge augmenting_path
+    then edge_add_value residual_edge (-augmenting_value)
+    else if is_counter_flow residual_edge augmenting_path
+      then edge_add_value residual_edge augmenting_value
+      else residual_edge
+    in
+  gmap_arcs residual_graph augment_edge
 
 let get_max_flow capacity_gr src tgt =
-  (* Create the flow graph (tell the current found flow for each edges) *)
-  let flow_graph =
-    gmap capacity_gr (fun _ -> 0)
-  and
+  (* Function used at the end to rebuild the flow graph from the residual graph *)
+  let get_flow_graph_from_residual_graph residual_graph =
+    let get_flow_edge capacity_edge =
+      match find_arc residual_graph capacity_edge.src capacity_edge.tgt with
+      | None -> {src = capacity_edge.src ; lbl = (capacity_edge.lbl, capacity_edge.lbl) ; tgt = capacity_edge.tgt}
+      | Some residual_edge -> {src = residual_edge.src ; lbl = (residual_edge.lbl, capacity_edge.lbl) ; tgt = residual_edge.tgt}
+    in
+    gmap_arcs capacity_gr get_flow_edge
+  in
+
   (* Create the residual graph (contains the backward flow as well) *)
-  residual_graph =
+  let residual_graph =
     gmap capacity_gr (fun x -> x)
   in
 
   (* Main loop *)
-  let rec ford_fulkerson fgr rgr =
+  let rec ford_fulkerson rgr =
     (* Get a path fro src to tgt in the residual graph *)
     let path_finding_result =
       get_path (fun a -> a > 0) rgr src tgt
     in
 
-    if path_finding_result = None then gmap fgr (fun x -> (x, x))
+    if path_finding_result = None then get_flow_graph_from_residual_graph rgr
     else
     
     let augmenting_path = Option.get path_finding_result in
@@ -66,21 +86,21 @@ let get_max_flow capacity_gr src tgt =
       List.fold_left (fun min arc2 -> if min < arc2.lbl then min else arc2.lbl) Int.max_int augmenting_path
     in
 
-    (* Remove the augmenting value from the flow graph *)
-    let new_flow_graph = decrease_on_path fgr augmenting_path augmenting_value in
-
-    (* Remove the augmenting value from the flow graph *)
-    let diminished_rgr = decrease_on_path rgr augmenting_path augmenting_value in
-
-    (* Add the augmenting path backwards to the residual graph *)
-    let new_residual_graph =
-      List.fold_left (fun acu path_edge -> new_arc acu (get_reversed_edge path_edge)) diminished_rgr augmenting_path
+    (* Add the opposite augmenting value to a counter flow edge *)
+    let augmented_rgr =
+      augment_residual_graph rgr augmenting_path augmenting_value
     in
 
-    ford_fulkerson new_flow_graph new_residual_graph
+    let new_residual_graph =
+      List.fold_left (fun acu path_edge -> match find_arc residual_graph path_edge.tgt path_edge.src with
+      | None -> new_arc acu (get_reversed_edge_with_value path_edge augmenting_value)
+      | Some _ -> acu) augmented_rgr augmenting_path
+    in
+
+    ford_fulkerson new_residual_graph
 
   in
-  ford_fulkerson flow_graph residual_graph
+  ford_fulkerson residual_graph
 
 ;;
 
