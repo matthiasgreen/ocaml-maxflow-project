@@ -1,7 +1,7 @@
 open Gfile
 open Max_flow
 open Tools
-    
+
 let () =
 
   (* Check the number of command-line arguments *)
@@ -18,10 +18,10 @@ let () =
 
 
   (* Arguments are : infile(1) source-id(2) sink-id(3) outfile(4) *)
-  
+
   let infile = Sys.argv.(1)
   and outfile = Sys.argv.(4)
-  
+
   (* These command-line arguments are not used for the moment. *)
   and _source = int_of_string Sys.argv.(2)
   and _sink = int_of_string Sys.argv.(3)
@@ -36,6 +36,6 @@ let () =
   let res_string = gmap res (fun (a, b) -> Printf.sprintf "%d/%d" a b) in
 
   (* Rewrite the graph that has been read. *)
-  let () = write_file outfile res_string in
+  let () = export outfile res_string in
 
   ()
