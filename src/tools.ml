@@ -22,3 +22,16 @@ let add_arc gr src tgt n =
             | a -> a
         )
 ;;
+
+let add_arc_cost gr src tgt n =
+    let possible_arc = find_arc gr src tgt in
+    match possible_arc with
+    | None -> gr
+    | Some _ ->
+        gmap_arcs gr (
+            function
+            | {src=a_src; tgt=a_tgt; lbl=(a_val, a_cost)} when a_src = src && a_tgt = tgt -> 
+                {src=a_src; tgt=a_tgt; lbl=(a_val+n, a_cost)} 
+            | a -> a
+        )
+;;

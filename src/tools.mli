@@ -16,3 +16,5 @@ val gmap_arcs: 'a graph -> ('a arc -> 'b arc) -> 'b graph
   Adds n to the value of the arc between id1 and id2. If the arc does not exist, it is created.
 *)
 val add_arc: int graph -> id -> id -> int -> int graph
+
+val add_arc_cost: (int * int) graph -> id -> id -> int -> (int * int) graph
