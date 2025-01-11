@@ -1,9 +1,8 @@
 open Gfile
-open Max_flow
+open Max_flow_min_cost
 open Tools
 
 let () =
-
   (* Check the number of command-line arguments *)
   if Array.length Sys.argv <> 5 then
     begin
@@ -23,17 +22,20 @@ let () =
   and outfile = Sys.argv.(4)
 
   (* These command-line arguments are not used for the moment. *)
-  and _source = int_of_string Sys.argv.(2)
-  and _sink = int_of_string Sys.argv.(3)
+  and source = int_of_string Sys.argv.(2)
+  and sink = int_of_string Sys.argv.(3)
   in
 
   (* Open file *)
   let graph = from_file infile in
 
   (* Run max flow algorithm *)
-  let int_graph = gmap graph int_of_string in
-  let res = get_max_flow int_graph _source _sink in
-  let res_string = gmap res (fun (a, b) -> Printf.sprintf "%d/%d" a b) in
+  let capa_cost_graph = gmap graph (
+    fun str -> 
+      Scanf.sscanf str "%d %d" (fun capa cost -> (capa, cost))
+  ) in
+  let res = get_max_flow_min_cost capa_cost_graph source sink in
+  let res_string = gmap res (fun (a, b) -> Printf.sprintf "%d %d" a b) in
 
   (* Rewrite the graph that has been read. *)
   let () = export outfile res_string in
