@@ -77,9 +77,17 @@ let get_max_flow_min_cost (gr: capacity_cost_gr) src tgt =
       loop (increase_flow residual_gr path)
   in
 
-  let gr = add_reverse_edges gr in
+  let rev_gr = add_reverse_edges gr in
 
-  loop gr
-  
+  let residual_gr = loop rev_gr in
+
+  (* Convert (residual, cost) graph to (flow, capacity) graph *)
+
+  e_fold residual_gr (
+    (* find edge in original gr and add *)
+    fun new_graph {src; tgt; lbl=(resid, _)} -> match find_arc gr src tgt with
+      | None -> new_graph (* If this is a backward edge, do not add *)
+      | Some {lbl=(capa, _); _} -> new_arc new_graph {src; tgt; lbl=(capa-resid, capa)} 
+  ) (clone_nodes residual_gr)
 ;;
 

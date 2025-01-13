@@ -1,6 +1,6 @@
 
 (executable
- (name ftest)
+ (name btest)
  ;; (libraries )
  
  ;; Disable some warnings

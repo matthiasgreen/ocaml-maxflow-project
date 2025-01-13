@@ -1,12 +1,10 @@
 open Graph
-open Max_flow
-open Gfile
-open Tools
+open Max_flow_min_cost
 
 type ('a, 'b) bipartite_problem = {
   u: ('a * int) list;
   v: ('b * int) list;
-  map: 'a -> 'b -> bool
+  map: 'a -> 'b -> int option
 }
 
 let bipartite_to_graph bp =
@@ -29,21 +27,21 @@ let bipartite_to_graph bp =
 
   (* 
     Now we can add the arcs:
-    iterate through u * v and add arc if map is true
+    iterate through u * v and add arc with weight if map is not None
   *)
   let gr = ref node_graph in
   Hashtbl.iter (
     (fun src (u, _) -> Hashtbl.iter (
-      fun tgt (v, _) -> if bp.map u v then gr := new_arc !gr {src; tgt; lbl=1}
+      fun tgt (v, _) -> match bp.map u v with | None -> () | Some weight -> gr := new_arc !gr {src; tgt; lbl=(1, weight)}
     ) htv)
   ) htu;
   (* Now add arcs between source and u *)
   Hashtbl.iter (
-    fun tgt (_, n) -> gr := new_arc !gr {src; tgt; lbl=n}
+    fun tgt (_, n) -> gr := new_arc !gr {src; tgt; lbl=(n, 0)}
   ) htu;
   (* Now add arcs between v and tgt*)
   Hashtbl.iter (
-    fun src (_, n) -> gr := new_arc !gr {src; tgt; lbl=n}
+    fun src (_, n) -> gr := new_arc !gr {src; tgt; lbl=(n, 0)}
   ) htv;
   (* Now return graph and hts *)
   (!gr, htu, htv, src, tgt)
@@ -51,8 +49,8 @@ let bipartite_to_graph bp =
 
 let solve_bipartite bp =
   let gr, htu, htv, source, target = bipartite_to_graph bp in
-  write_file "bipartite_graph" (gmap gr string_of_int);
-  let max_flow_graph = get_max_flow(gr) source target in
+  (*write_file "bipartite_graph" (gmap gr string_of_int);*)
+  let max_flow_graph = get_max_flow_min_cost gr source target in
   (* Now we need to iterate through u->v edges and see which ones have 1, 1*)
   let res = ref [] in
   e_iter max_flow_graph (

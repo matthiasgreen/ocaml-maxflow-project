@@ -1,0 +1,27 @@
+% On déclare 3 ressources avec un nombre de places
+v ocaml 2
+v secu 2
+v java 3
+
+% On déclare 4 eleves avec un nombre maximum de cours
+u el1 3
+u el2 3
+u el3 1
+u el4 3
+
+% On déclare qui veut quoi avec un cout (classement, petit = privilégier, grand = pas privilégier)
+e el1 java 1
+e el1 ocaml 2
+e el1 secu 3
+
+e el2 ocaml 1
+e el2 secu 2
+e el2 java 3
+
+e el3 secu 1
+e el3 ocaml 2
+e el3 java 3
+
+e el4 ocaml 1
+e el4 secu 2
+e el4 java 3

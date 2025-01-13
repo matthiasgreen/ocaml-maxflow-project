@@ -2,16 +2,16 @@ open Bipartite
 
 type path = string
 
-type bp = ((string * string list), string) bipartite_problem
+type bp = ((string * (string * int) list), string) bipartite_problem
 
-let print_bp bp =
+(* let print_bp bp =
   Printf.printf "u:\n";
   List.iter (fun ((name, list), n) -> Printf.printf "%d %s [%s]\n" n name (String.concat ", " list)) bp.u;
   Printf.printf "v:\n";
   List.iter (fun (name, n) -> Printf.printf "%s %d\n" name n) bp.v;
   Printf.printf "map:\n";
   ()
-;;
+;; *)
 
 let add_u (bp: bp) u_name n =
   {bp with u=(
@@ -22,12 +22,12 @@ let add_v bp v n =
   {bp with v=((v, n) :: bp.v)}
 ;;
 
-let add_e (bp: bp) u_name v_name =
+let add_e (bp: bp) u_name v_name weight =
   let res = List.find_opt (fun ((name, _), _) -> name = u_name) bp.u in
   match res with
   | None -> failwith "Cannot add edge"
   | Some _ -> {bp with u=(
-    List.map (fun ((name, list), n) -> if name = u_name then ((name, v_name :: list), n) else ((name, list), n)) bp.u
+    List.map (fun ((name, list), n) -> if name = u_name then ((name, (v_name, weight) :: list), n) else ((name, list), n)) bp.u
   )}
 
 let read_u bp line =
@@ -47,8 +47,8 @@ let read_v bp line =
 ;;
 
 let read_e bp line =
-  try Scanf.sscanf line "e %s %s %s@%%" (
-    fun u_name v_name _ -> add_e bp u_name v_name
+  try Scanf.sscanf line "e %s %s %d %s@%%" (
+    fun u_name v_name weight _ -> add_e bp u_name v_name weight
   ) with e ->
     Printf.printf "Cannot read e in line - %s:\n%s\n%!" (Printexc.to_string e) line ;
     failwith "from_file"
@@ -90,9 +90,13 @@ let bp_from_file path =
     with End_of_file -> bp (* Done *)
   in
 
-  let final_graph = loop {u=[]; v=[]; map=(fun (_, u_val) v -> List.exists (fun el -> el = v) u_val)} in
+  let final_graph = loop {u=[]; v=[]; map=(
+    fun (_, u_val) v -> match List.find_opt (fun (v_val, _) -> v_val = v) u_val with
+      | None -> None
+      | Some (_, weight) -> Some weight
+  )} in
   
   close_in infile ;
-  print_bp final_graph;
+  (* print_bp final_graph; *)
   final_graph
   
