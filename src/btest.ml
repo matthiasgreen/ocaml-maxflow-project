@@ -2,10 +2,10 @@ open Bipartite
 open Bfile
 
 let rec print_res = function
-| [] -> print_endline "done"
-| ((u_name, _), v_name) :: rest -> 
-  Printf.printf "%s -> %s\n" u_name v_name;
-  print_res rest
+  | [] -> print_endline "done"
+  | ((u_name, _), v_name) :: rest -> 
+    Printf.printf "%s -> %s\n" u_name v_name;
+    print_res rest
 
 
 let () =

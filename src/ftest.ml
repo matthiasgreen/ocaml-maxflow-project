@@ -31,9 +31,9 @@ let () =
 
   (* Run max flow algorithm *)
   let capa_cost_graph = gmap graph (
-    fun str -> 
-      Scanf.sscanf str "%d %d" (fun capa cost -> (capa, cost))
-  ) in
+      fun str -> 
+        Scanf.sscanf str "%d %d" (fun capa cost -> (capa, cost))
+    ) in
   let res = get_max_flow_min_cost capa_cost_graph source sink in
   let res_string = gmap res (fun (a, b) -> Printf.sprintf "%d %d" a b) in
 

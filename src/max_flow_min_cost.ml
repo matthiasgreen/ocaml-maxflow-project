@@ -55,9 +55,9 @@ let get_max_flow_min_cost (gr: capacity_cost_gr) src tgt =
       (* elif backwards edge in path, add edge with increased residual flow *)
       fun new_gr {src; tgt; lbl=(f, cost)} -> 
         if is_in_path path src tgt then new_arc new_gr {src; tgt; lbl=(f-flow, cost)} else
-          if is_in_path path tgt src then new_arc new_gr {src; tgt; lbl=(f+flow, cost)} else
-            new_arc new_gr {src; tgt; lbl=(f, cost)}
-        
+        if is_in_path path tgt src then new_arc new_gr {src; tgt; lbl=(f+flow, cost)} else
+          new_arc new_gr {src; tgt; lbl=(f, cost)}
+
     ) (clone_nodes gr)
   in
 

@@ -12,10 +12,10 @@ let bipartite_to_graph bp =
   let htu = Hashtbl.create (List.length bp.u) in
   let htv = Hashtbl.create (List.length bp.v) in
   let rec add_nodes ht gr n = function
-  | [] -> (gr, n)
-  | el :: rest -> 
-    Hashtbl.add ht n el; 
-    add_nodes ht (new_node gr n) (n+1) rest
+    | [] -> (gr, n)
+    | el :: rest -> 
+      Hashtbl.add ht n el; 
+      add_nodes ht (new_node gr n) (n+1) rest
   in
   let (u_node_graph, n) = add_nodes htu empty_graph 0 bp.u in
   let (node_graph, n) = add_nodes htv u_node_graph (n+1) bp.v in
@@ -32,8 +32,8 @@ let bipartite_to_graph bp =
   let gr = ref node_graph in
   Hashtbl.iter (
     (fun src (u, _) -> Hashtbl.iter (
-      fun tgt (v, _) -> match bp.map u v with | None -> () | Some weight -> gr := new_arc !gr {src; tgt; lbl=(1, weight)}
-    ) htv)
+         fun tgt (v, _) -> match bp.map u v with | None -> () | Some weight -> gr := new_arc !gr {src; tgt; lbl=(1, weight)}
+       ) htv)
   ) htu;
   (* Now add arcs between source and u *)
   Hashtbl.iter (
@@ -55,9 +55,9 @@ let solve_bipartite bp =
   let res = ref [] in
   e_iter max_flow_graph (
     fun {src; tgt; lbl=(f, _)} -> if f = 1 && src != source && tgt != target then
-      let (u_name, _) = Hashtbl.find htu src in
-      let (v_name, _) = Hashtbl.find htv tgt in
-       res := (u_name, v_name) :: !res
+        let (u_name, _) = Hashtbl.find htu src in
+        let (v_name, _) = Hashtbl.find htv tgt in
+        res := (u_name, v_name) :: !res
   );
   !res
 

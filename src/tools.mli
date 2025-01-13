@@ -18,3 +18,5 @@ val gmap_arcs: 'a graph -> ('a arc -> 'b arc) -> 'b graph
 val add_arc: int graph -> id -> id -> int -> int graph
 
 val add_arc_cost: (int * int) graph -> id -> id -> int -> (int * int) graph
+
+val n_nodes: ('a graph) -> int

@@ -25,13 +25,13 @@ let get_path pred gr src tgt =
           Find the first result which is not None and append visited arc
         *)
         let rec inner_loop = function
-        | [] -> None
-        | arc :: rest ->
-          if not (pred arc.lbl) then inner_loop rest else 
-          let result = loop arc.tgt in
-          match result with
-          | None -> inner_loop rest
-          | Some path -> Some (arc :: path)
+          | [] -> None
+          | arc :: rest ->
+            if not (pred arc.lbl) then inner_loop rest else 
+              let result = loop arc.tgt in
+              match result with
+              | None -> inner_loop rest
+              | Some path -> Some (arc :: path)
         in
         inner_loop (out_arcs gr current_node)
     )
