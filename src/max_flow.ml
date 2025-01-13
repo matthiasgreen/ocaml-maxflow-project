@@ -110,46 +110,69 @@ let get_max_flow capacity_gr src tgt =
 
 ;;
 
-(* legacy 
-
-   (* Main loop *)
-   let rec loop gr =
-   (* Create graph with remaining capacity as labels *)
-   let remaining_gr = better_gmap
-    gr (fun arc -> {arc with lbl=((Option.get (find_arc capacity_gr arc.src arc.tgt)).lbl - arc.lbl)})
-   in
-   (* Get augmenting path from source to target *)
-   let augmenting_path = get_path (fun x -> x > 0) remaining_gr src tgt in
-
-   (* Get the max flow along the path *)
-   let get_max_path_flow path =
-    List.fold_left (fun min arc2 -> if min < arc2.lbl then min else arc2.lbl) Int.max_int path
-   in
-   match augmenting_path with
-   | None -> gr
-   | Some path ->
-    print_endline "Augmenting path found: ";
-    print_path path;
-    let min_path_flow = get_max_path_flow path in
-    Printf.printf "Min path flow: %d\n" min_path_flow;
-    (* Add max flow to all arcs in the path and recurse *)
-    let arc_in_path arc =
-      match List.find_opt (fun arc2 -> arc2.src = arc.src && arc2.tgt = arc.tgt) path with
-      | None -> false
-      | Some _ -> true
-    in
-    let next_graph = (better_gmap gr (fun arc -> {arc with lbl=(
-      if arc_in_path arc then arc.lbl + min_path_flow else arc.lbl
-    )})) in
-    print_graph next_graph;
-    loop next_graph
-   in
-   let max_flow_graph = loop init_gr in
-   better_gmap max_flow_graph (fun arc -> {arc with lbl=(
-   (arc.lbl, (Option.get (find_arc capacity_gr arc.src arc.tgt)).lbl)
-   )})
-   ;;*)
-
 let get_max_flow_number gr src =
   List.fold_left (fun total {lbl=(f, _); _} -> total + f) 0 (out_arcs gr src)
+;;
+
+
+let get_max_flow_min_cost gr src tgt =
+  (* Add reverse edges to a (capacity, cost) graph ((0, -cost))*)
+  let add_reverse_edges gr = 
+    e_fold gr (
+      fun new_graph {src; tgt; lbl=(_, cost)} -> new_arc new_graph {src=tgt; tgt=src; lbl=(0, -cost)}
+    ) gr
+  in
+
+  let flow_along_path path = 
+    List.fold_left (
+      fun min_flow {lbl=(flow, _); _} -> Int.min min_flow flow  
+    ) Int.max_int path
+  in
+
+  let is_in_path path f_src f_tgt =
+    match List.find_opt (fun {src; tgt; _} -> src=f_src && tgt=f_tgt) path with 
+    | None -> false
+    | Some _ -> true
+  in
+
+  (* 
+    Takes a residual graph and a path.
+    Increases the flow (forward and backwards) as much as possible.
+  *)
+  let increase_flow gr path =
+    let flow = flow_along_path path in
+    e_fold gr (
+      (* If edge not in path, add edge unmodifed*)
+      (* elif edge in path, add edge with decreased residual flow *)
+      (* elif backwards edge in path, add edge with increased residual flow *)
+      fun new_gr {src; tgt; lbl=(f, cost)} -> 
+        if is_in_path path src tgt then new_arc new_gr {src; tgt; lbl=(f-flow, cost)} else
+        if is_in_path path tgt src then new_arc new_gr {src; tgt; lbl=(f+flow, cost)} else
+          new_arc new_gr {src; tgt; lbl=(f, cost)}
+
+    ) (clone_nodes gr)
+  in
+
+  (* White short path exists, increase flow *)
+  let rec loop residual_gr =
+    let path = get_short_path (fun resid -> resid > 0) residual_gr src tgt in
+    match path with
+    | None -> residual_gr
+    | Some (_, path) ->
+      (* Modify residual path, then call again *)
+      loop (increase_flow residual_gr path)
+  in
+
+  let rev_gr = add_reverse_edges gr in
+
+  let residual_gr = loop rev_gr in
+
+  (* Convert (residual, cost) graph to (flow, capacity) graph *)
+
+  e_fold residual_gr (
+    (* find edge in original gr and add *)
+    fun new_graph {src; tgt; lbl=(resid, _)} -> match find_arc gr src tgt with
+      | None -> new_graph (* If this is a backward edge, do not add *)
+      | Some {lbl=(capa, _); _} -> new_arc new_graph {src; tgt; lbl=(capa-resid, capa)} 
+  ) (clone_nodes residual_gr)
 ;;

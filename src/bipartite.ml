@@ -1,5 +1,5 @@
 open Graph
-open Max_flow_min_cost
+open Max_flow
 
 type ('a, 'b) bipartite_problem = {
   u: ('a * int) list;

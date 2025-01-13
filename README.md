@@ -1,22 +1,139 @@
-Base project for Ocaml project on Ford-Fulkerson. This project contains some simple configuration files to facilitate editing Ocaml in VSCode.
+# Minimum weight bipartite matching in Ocaml
 
-To use, you should install the *OCaml Platform* extension in VSCode.
-Then open VSCode in the root directory of this repository (command line: `code path/to/ocaml-maxflow-project`).
+This school project's goal is to implement the Ford-Fulkerson algorithm in Ocaml and to apply it to a real-life problem. 
+We chose to apply it to the minimum-weight bipartite matching problem, which can easily be used to assign candidates to limited ressources given a preference ranking.
 
-Features :
- - full compilation as VSCode build task (Ctrl+Shift+b)
- - highlights of compilation errors as you type
- - code completion
- - view of variable types
+## Example application
 
+Let's say we have 3 courses with limited spots, and 3 students with a limited number of courses they can take.
+Each of these students can rank the courses they want.
 
-A [`Makefile`](Makefile) provides some useful commands:
+We first want to maximize the number of student-course assignations.
+Multiple configurations with the same number of assignations may exist.
+We want to choose the one which minimizes the total cost. 
 
- - `make build` to compile. This creates an `ftest.exe` executable
- - `make demo` to run the `ftest` program with some arguments
- - `make format` to indent the entire project
- - `make edit` to open the project in VSCode
- - `make clean` to remove build artifacts
+```
+% 3 classes with a 1, 1, and 2 spots respectively
+v Ocaml 1
+v Java 1
+v Secu 2
 
-In case of trouble with the VSCode extension (e.g. the project does not build, there are strange mistakes), a common workaround is to (1) close vscode, (2) `make clean`, (3) `make build` and (4) reopen vscode (`make edit`).
+% 3 students who can take at most 2 courses
 
+u Matthias 2
+u Matheo 2
+u Sacha 2
+
+% Course requests and rankings (costs)
+e Matthias Ocaml 1
+e Matthias Secu 2
+e Matthias Java 3
+
+e Matheo Java 1
+e Matheo Ocaml 2
+e Matheo Secu 3
+
+e Sacha Secu 1
+e Sacha Java 2
+
+```
+
+In this situation, the optimal way to assign the classes is:
+```bash
+./btest.exe bipartites/bipartite_readme.txt
+# Output:
+# Matthias -> Secu
+# Matthias -> Ocaml
+# Sacha -> Secu
+# Matheo -> Java
+```
+
+Each student gets their top pick, and the remaining spot in the security course is assigned to Matthias, who ranked it higher than Matheo.
+
+## Explanation
+
+The standard max-flow algorithm can easily be used to solve an unweighted bipartite problem, by converting the problem into a graph like this:
+
+(Values from previous example, ignoring rankings)
+
+Values on arrows are the capacity of the edge.
+
+```mermaid
+
+flowchart LR
+    source((Source))
+
+    matthias((Matthias))
+    matheo((Matheo))
+    sacha((Sacha))
+
+    ocaml((Ocaml))
+    java((Java))
+    secu((Securité))
+
+    sink((Sink))
+
+    source --2--> matthias
+    source --2--> matheo
+    source --2--> sacha
+
+    matthias --1----> ocaml
+    matthias --1----> secu
+    matthias --1----> java
+
+    matheo --1----> ocaml
+    matheo --1----> secu
+    matheo --1----> java
+
+    sacha --1----> secu
+    sacha --1----> java
+
+    ocaml --1--> sink
+    secu --2--> sink
+    java --1--> sink
+
+```
+
+We can see that solving this graph for max-flow will solve the bipartite problem.
+
+The capacity between the source and the candidates represents the number of ressources they can have, and the capacity between the ressources and the sink represents the number candidates they can be assigned to.
+
+In this example, there are multiple configurations which maximize the flow, we must therefore introduce a cost of the edges between candidates and ressources.
+
+In the following example, the second value on each arrow is the cost.
+
+```mermaid
+
+flowchart LR
+    source((Source))
+
+    matthias((Matthias))
+    matheo((Matheo))
+    sacha((Sacha))
+
+    ocaml((Ocaml))
+    java((Java))
+    secu((Securité))
+
+    sink((Sink))
+
+    source --(2, 1)--> matthias
+    source --(2, 1)--> matheo
+    source --(2, 1)--> sacha
+
+    matthias --(1, 1)----> ocaml
+    matthias --(1, 2)----> secu
+    matthias --(1, 3)----> java
+
+    matheo --(1, 1)----> java
+    matheo --(1, 2)----> ocaml
+    matheo --(1, 3)----> secu
+
+    sacha --(1, 1)----> secu
+    sacha --(1, 2)----> java
+
+    ocaml --(1, 1)--> sink
+    secu --(2, 1)--> sink
+    java --(1, 1)--> sink
+
+```
