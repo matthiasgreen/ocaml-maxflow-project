@@ -40,7 +40,7 @@ e Sacha Java 2
 
 In this situation, the optimal way to assign the classes is:
 ```bash
-./btest.exe bipartites/bipartite_readme.txt
+./btest.exe bipartites/bipartite_readme.txt outfile
 # Output:
 # Matthias -> Secu
 # Matthias -> Ocaml
@@ -137,3 +137,12 @@ flowchart LR
     java --(1, 1)--> sink
 
 ```
+
+Solving this graph for max-flow-min-cost allows us to choose the most optimal configuration.
+
+## Note about max-flow-min-cost
+
+There are multiple definitions for max-flow-min-cost:
+- Minimize the sum of edge_cost * edge_flow for the whole graph. This requires negative costs to be useful (otherwise will always return 0).
+- Maximize the flow in the configuration where sum of edge_cost * edge_flow is minimal. This is better suited for our application.
+ 
