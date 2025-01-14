@@ -7,6 +7,16 @@ type ('a, 'b) bipartite_problem = {
   map: 'a -> 'b -> int option
 }
 
+(*
+  Convert a bipartite problem to a graph. See README for examples.
+  Returns: (
+    (capacity, cost) graph,
+    (u_name: node_id) hashmap,
+    (v_name: node_id) hashmap,
+    source,
+    sink
+  )
+*)
 let bipartite_to_graph bp =
   (* First, we need to convert bp to a graph. We also need to store a id -> 'a/'b hashmap to retrieve information at the end *)
   let htu = Hashtbl.create (List.length bp.u) in
@@ -14,7 +24,7 @@ let bipartite_to_graph bp =
   let rec add_nodes ht gr n = function
     | [] -> (gr, n)
     | el :: rest -> 
-      Hashtbl.add ht n el; 
+      Hashtbl.add ht n el;
       add_nodes ht (new_node gr n) (n+1) rest
   in
   let (u_node_graph, n) = add_nodes htu empty_graph 0 bp.u in

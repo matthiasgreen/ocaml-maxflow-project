@@ -3,43 +3,8 @@ open Tools
 
 module S = Set.Make (struct type t = id let compare = Stdlib.compare end)
 
-(*
-  First implementation: DFS
-  Innefficient but easier to do recursively.
-*)
-let get_path pred gr src tgt =
-  (* Store visited nodes with Set reference *)
-  let visited_nodes = ref S.empty in
-  let is_visited el = S.mem el !visited_nodes in
-  let visit el = visited_nodes := S.add el !visited_nodes; in
-
-  (* Recurse through graph *)
-  let rec loop current_node =
-    (* If the current node is visited, then skip, else visit *)
-    if is_visited current_node then None else (
-      visit current_node;
-      (* If current node is the target, return an empty path *)
-      if current_node = tgt then Some [] else
-
-        (* 
-          Otherwise, call self on children of current node
-          Find the first result which is not None and append visited arc
-        *)
-        let rec inner_loop = function
-          | [] -> None
-          | arc :: rest ->
-            if not (pred arc.lbl) then inner_loop rest else 
-              let result = loop arc.tgt in
-              match result with
-              | None -> inner_loop rest
-              | Some path -> Some (arc :: path)
-        in
-        inner_loop (out_arcs gr current_node)
-    )
-  in loop src
-;;
-
-
+(* Update the hashtable with current cost.
+  Returns true if the program should continue searching this branch, otherwise false. *)
 let visit_node hashtable node prev_node cost =
   (* If node has already been visited *)
   if Hashtbl.mem hashtable node
@@ -80,6 +45,7 @@ let fill_cost_table pred cost_table gr src tgt =
   cost_table
 ;;
 
+(* In order to get the shortest path from cost_map, we need to iterate backwards from the target, following the prev_node we put in the cost_map *)
 let get_path_from_table cost_table gr tgt =
   (* Iterate from target to source, following prev_node of cost map *)
   let rec reverse_iter node =
@@ -94,9 +60,45 @@ let get_short_path pred gr src tgt =
   (* This map stores the min cost to reach the node and optionally the node which it was reached from *)
   let cost_table = fill_cost_table pred (Hashtbl.create (n_nodes gr)) gr src tgt in
 
-  (* In order to get the shortest path from cost_map, we need to iterate backwards from the target, following the nodes we put in the cost_map *)
   if Hashtbl.mem cost_table tgt then
     let (cost, _) = Hashtbl.find cost_table tgt in
     Some (cost, get_path_from_table cost_table gr tgt)
   else None
+;;
+
+
+(*
+  First implementation: DFS
+  Innefficient but simple.
+*)
+let get_path pred gr src tgt =
+  (* Store visited nodes with Set reference *)
+  let visited_nodes = ref S.empty in
+  let is_visited el = S.mem el !visited_nodes in
+  let visit el = visited_nodes := S.add el !visited_nodes; in
+
+  (* Recurse through graph *)
+  let rec loop current_node =
+    (* If the current node is visited, then skip, else visit *)
+    if is_visited current_node then None else (
+      visit current_node;
+      (* If current node is the target, return an empty path *)
+      if current_node = tgt then Some [] else
+
+        (* 
+          Otherwise, call self on children of current node
+          Find the first result which is not None and append visited arc
+        *)
+        let rec inner_loop = function
+          | [] -> None
+          | arc :: rest ->
+            if not (pred arc.lbl) then inner_loop rest else 
+              let result = loop arc.tgt in
+              match result with
+              | None -> inner_loop rest
+              | Some path -> Some (arc :: path)
+        in
+        inner_loop (out_arcs gr current_node)
+    )
+  in loop src
 ;;

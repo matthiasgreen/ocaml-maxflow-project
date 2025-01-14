@@ -1,7 +1,8 @@
 # Minimum weight bipartite matching in Ocaml
 
 This school project's goal is to implement the Ford-Fulkerson algorithm in Ocaml and to apply it to a real-life problem. 
-We chose to apply it to the minimum-weight bipartite matching problem, which can easily be used to assign candidates to limited ressources given a preference ranking.
+We chose to apply it to the minimum-cost bipartite matching problem.
+It can easily be used to assign candidates with limited availability to ressources with limited quantity given a preference ranking.
 
 ## Example application
 
@@ -41,7 +42,7 @@ e Sacha Java 2
 In this situation, the optimal way to assign the classes is:
 ```bash
 ./btest.exe bipartites/bipartite_readme.txt outfile
-# Output:
+# outfile:
 # Matthias -> Secu
 # Matthias -> Ocaml
 # Sacha -> Secu
@@ -98,9 +99,9 @@ We can see that solving this graph for max-flow will solve the bipartite problem
 
 The capacity between the source and the candidates represents the number of ressources they can have, and the capacity between the ressources and the sink represents the number candidates they can be assigned to.
 
-In this example, there are multiple configurations which maximize the flow, we must therefore introduce a cost of the edges between candidates and ressources.
+In this example, there are multiple configurations which maximize the flow, we must therefore introduce a cost for the edges between candidates and ressources.
 
-In the following example, the second value on each arrow is the cost.
+In the following example, the second value on each arrow is the cost. (capacity, cost)
 
 ```mermaid
 

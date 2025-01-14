@@ -2,24 +2,91 @@ open Graph
 open Tools
 open Path_find
 
-(*
-let print_path path =
-  print_endline "Path:";
-  List.iter (fun arc -> Printf.printf "%d -> %d (%d)\n" arc.src arc.tgt arc.lbl) path;
-  print_endline ""
+(* Add reverse edges to a (residual_flow: int, cost: int) graph.
+  For each edge, add an edge with (0, -cost) *)
+let add_reverse_edges gr = 
+  e_fold gr (
+    fun new_graph {src; tgt; lbl=(_, cost)} -> new_arc new_graph {src=tgt; tgt=src; lbl=(0, -cost)}
+  ) gr
 ;;
 
-let print_graph graph =
-  print_endline "Graph:";
-  e_iter graph (fun arc -> Printf.printf "%d -> %d (%d)\n" arc.src arc.tgt arc.lbl);
-  print_endline ""
+(* Calculate the maximum flow along a path
+  It is equal to the minimum residual flow *)
+let flow_along_path path =
+  List.fold_left (
+    fun min_flow {lbl=(flow, _); _} -> Int.min min_flow flow  
+  ) Int.max_int path
 ;;
+
+(* Check if the arc {f_src; f_tgt} is in the path *)
+let is_in_path path f_src f_tgt =
+  match List.find_opt (fun {src; tgt; _} -> src=f_src && tgt=f_tgt) path with 
+  | None -> false
+  | Some _ -> true
+;;
+
+(* 
+  Takes a residual graph (of type (residual_flow: int, cost: int) graph) and a path.
+  Modifies the graph to increase the flow (forward and backwards) along the path.
+*)
+let increase_flow gr path =
+  let flow = flow_along_path path in
+  e_fold gr (
+    (* If edge not in path, add edge unmodifed *)
+    (* elif edge in path, add edge with decreased residual flow *)
+    (* elif backwards edge in path, add edge with increased residual flow *)
+    fun new_gr {src; tgt; lbl=(f, cost)} -> 
+      if is_in_path path src tgt then new_arc new_gr {src; tgt; lbl=(f-flow, cost)} else
+      if is_in_path path tgt src then new_arc new_gr {src; tgt; lbl=(f+flow, cost)} else
+        new_arc new_gr {src; tgt; lbl=(f, cost)}
+
+  ) (clone_nodes gr)
+;;
+
+let get_max_flow_min_cost gr src tgt =
+
+  (* While an augmenting path exists (lowest cost first), increase the flow along that path *)
+  let rec loop residual_gr =
+    let path = get_short_path (fun resid -> resid > 0) residual_gr src tgt in
+    match path with
+    | None -> residual_gr
+    | Some (_, path) ->
+      (* Modify residual path, then call again *)
+      loop (increase_flow residual_gr path)
+  in
+
+  let rev_gr = add_reverse_edges gr in
+
+  let residual_gr = loop rev_gr in
+
+  (* Convert (residual, cost) graph to (flow, capacity) graph. *)
+
+  e_fold residual_gr (
+    (* find edge in original gr and add *)
+    fun new_graph {src; tgt; lbl=(resid, _)} -> match find_arc gr src tgt with
+      | None -> new_graph (* If this is a backward edge, do not add *)
+      | Some {lbl=(capa, _); _} -> new_arc new_graph {src; tgt; lbl=(capa-resid, capa)} 
+  ) (clone_nodes residual_gr)
+;;
+
+
+(* Get the total flow out of the source node (equal to the total flow into the sink node) *)
+let get_max_flow_number gr src =
+  List.fold_left (fun total {lbl=(f, _); _} -> total + f) 0 (out_arcs gr src)
+;;
+
+
+(*
+  ===========================================================================
+  The following has been kept to show our work.
+  It is no longer necessary since you can use max_flow_min_cost with cost = 1
 *)
 
+(*  *)
 let edge_add_value edge value =
   {src = edge.src ; lbl = edge.lbl + value ; tgt = edge.tgt}
 
-(* Reverse a given edge i.e. src becomes tgt and tgt bocomes src *)
+(* Reverse a given edge i.e. src becomes tgt and tgt becomes src *)
 let get_reversed_edge edge =
   {src=edge.tgt ; lbl=edge.lbl ; tgt=edge.src}
 
@@ -36,6 +103,7 @@ let add_counter_flow graph path =
       | Some _ -> acu (* do nothing if there already is a counter flow *)
     ) graph path
 
+(* Increase flow along path in graph *)
 let augment_on_path graph path value =
   let is_in_path edge =
     let is_same_edge =
@@ -108,71 +176,4 @@ let get_max_flow capacity_gr src tgt =
   in
   ford_fulkerson residual_graph
 
-;;
-
-let get_max_flow_number gr src =
-  List.fold_left (fun total {lbl=(f, _); _} -> total + f) 0 (out_arcs gr src)
-;;
-
-
-let get_max_flow_min_cost gr src tgt =
-  (* Add reverse edges to a (capacity, cost) graph ((0, -cost))*)
-  let add_reverse_edges gr = 
-    e_fold gr (
-      fun new_graph {src; tgt; lbl=(_, cost)} -> new_arc new_graph {src=tgt; tgt=src; lbl=(0, -cost)}
-    ) gr
-  in
-
-  let flow_along_path path = 
-    List.fold_left (
-      fun min_flow {lbl=(flow, _); _} -> Int.min min_flow flow  
-    ) Int.max_int path
-  in
-
-  let is_in_path path f_src f_tgt =
-    match List.find_opt (fun {src; tgt; _} -> src=f_src && tgt=f_tgt) path with 
-    | None -> false
-    | Some _ -> true
-  in
-
-  (* 
-    Takes a residual graph and a path.
-    Increases the flow (forward and backwards) as much as possible.
-  *)
-  let increase_flow gr path =
-    let flow = flow_along_path path in
-    e_fold gr (
-      (* If edge not in path, add edge unmodifed*)
-      (* elif edge in path, add edge with decreased residual flow *)
-      (* elif backwards edge in path, add edge with increased residual flow *)
-      fun new_gr {src; tgt; lbl=(f, cost)} -> 
-        if is_in_path path src tgt then new_arc new_gr {src; tgt; lbl=(f-flow, cost)} else
-        if is_in_path path tgt src then new_arc new_gr {src; tgt; lbl=(f+flow, cost)} else
-          new_arc new_gr {src; tgt; lbl=(f, cost)}
-
-    ) (clone_nodes gr)
-  in
-
-  (* White short path exists, increase flow *)
-  let rec loop residual_gr =
-    let path = get_short_path (fun resid -> resid > 0) residual_gr src tgt in
-    match path with
-    | None -> residual_gr
-    | Some (_, path) ->
-      (* Modify residual path, then call again *)
-      loop (increase_flow residual_gr path)
-  in
-
-  let rev_gr = add_reverse_edges gr in
-
-  let residual_gr = loop rev_gr in
-
-  (* Convert (residual, cost) graph to (flow, capacity) graph *)
-
-  e_fold residual_gr (
-    (* find edge in original gr and add *)
-    fun new_graph {src; tgt; lbl=(resid, _)} -> match find_arc gr src tgt with
-      | None -> new_graph (* If this is a backward edge, do not add *)
-      | Some {lbl=(capa, _); _} -> new_arc new_graph {src; tgt; lbl=(capa-resid, capa)} 
-  ) (clone_nodes residual_gr)
 ;;
