@@ -22,7 +22,7 @@ v Secu 2
 % 3 students who can take at most 2 courses
 
 u Matthias 2
-u Matheo 2
+u Mateo 2
 u Sacha 2
 
 % Course requests and rankings (costs)
@@ -30,9 +30,9 @@ e Matthias Ocaml 1
 e Matthias Secu 2
 e Matthias Java 3
 
-e Matheo Java 1
-e Matheo Ocaml 2
-e Matheo Secu 3
+e Mateo Java 1
+e Mateo Ocaml 2
+e Mateo Secu 3
 
 e Sacha Secu 1
 e Sacha Java 2
@@ -46,10 +46,10 @@ In this situation, the optimal way to assign the classes is:
 # Matthias -> Secu
 # Matthias -> Ocaml
 # Sacha -> Secu
-# Matheo -> Java
+# Mateo -> Java
 ```
 
-Each student gets their top pick, and the remaining spot in the security course is assigned to Matthias, who ranked it higher than Matheo.
+Each student gets their top pick, and the remaining spot in the security course is assigned to Matthias, who ranked it higher than mateo.
 
 ## Explanation
 
@@ -65,7 +65,7 @@ flowchart LR
     source((Source))
 
     matthias((Matthias))
-    matheo((Matheo))
+    mateo((Mateo))
     sacha((Sacha))
 
     ocaml((Ocaml))
@@ -75,16 +75,16 @@ flowchart LR
     sink((Sink))
 
     source --2--> matthias
-    source --2--> matheo
+    source --2--> mateo
     source --2--> sacha
 
     matthias --1----> ocaml
     matthias --1----> secu
     matthias --1----> java
 
-    matheo --1----> ocaml
-    matheo --1----> secu
-    matheo --1----> java
+    mateo --1----> ocaml
+    mateo --1----> secu
+    mateo --1----> java
 
     sacha --1----> secu
     sacha --1----> java
@@ -109,7 +109,7 @@ flowchart LR
     source((Source))
 
     matthias((Matthias))
-    matheo((Matheo))
+    mateo((mateo))
     sacha((Sacha))
 
     ocaml((Ocaml))
@@ -119,16 +119,16 @@ flowchart LR
     sink((Sink))
 
     source --(2, 1)--> matthias
-    source --(2, 1)--> matheo
+    source --(2, 1)--> mateo
     source --(2, 1)--> sacha
 
     matthias --(1, 1)----> ocaml
     matthias --(1, 2)----> secu
     matthias --(1, 3)----> java
 
-    matheo --(1, 1)----> java
-    matheo --(1, 2)----> ocaml
-    matheo --(1, 3)----> secu
+    mateo --(1, 1)----> java
+    mateo --(1, 2)----> ocaml
+    mateo --(1, 3)----> secu
 
     sacha --(1, 1)----> secu
     sacha --(1, 2)----> java

@@ -1,14 +1,13 @@
 .PHONY: all build format edit demo clean
 
-src?=0
-dst?=5
-graph?=graph1.txt
+EXEC=btest
+DEMO_BP=bipartites/bipartite_readme.txt
 
 all: build
 
 build:
 	@echo "\n   🚨  COMPILING  🚨 \n"
-	dune build src/btest.exe
+	dune build src/$(EXEC).exe
 	ls src/*.exe > /dev/null && ln -fs src/*.exe .
 
 format:
@@ -19,7 +18,7 @@ edit:
 
 demo: build
 	@echo "\n   ⚡  EXECUTING  ⚡\n"
-	./ftest.exe graphs/${graph} $(src) $(dst) outfile
+	./$(EXEC).exe $(DEMO_BP) outfile
 	@echo "\n   🥁  RESULT (content of outfile)  🥁\n"
 	@cat outfile
 
