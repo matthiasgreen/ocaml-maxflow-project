@@ -16,6 +16,8 @@ type ('a, 'b) bipartite_problem = {
     source,
     sink
   )
+  Désolé c'est pas très fonctionnel.
+  Mais ca marche
 *)
 let bipartite_to_graph bp =
   (* First, we need to convert bp to a graph. We also need to store a id -> 'a/'b hashmap to retrieve information at the end *)
@@ -42,7 +44,9 @@ let bipartite_to_graph bp =
   let gr = ref node_graph in
   Hashtbl.iter (
     (fun src (u, _) -> Hashtbl.iter (
-         fun tgt (v, _) -> match bp.map u v with | None -> () | Some weight -> gr := new_arc !gr {src; tgt; lbl=(1, weight)}
+         fun tgt (v, _) -> match bp.map u v with
+          | None -> ()
+          | Some weight -> gr := new_arc !gr {src; tgt; lbl=(1, weight)}
        ) htv)
   ) htu;
   (* Now add arcs between source and u *)
@@ -62,12 +66,11 @@ let solve_bipartite bp =
   (*write_file "bipartite_graph" (gmap gr string_of_int);*)
   let max_flow_graph = get_max_flow_min_cost gr source target in
   (* Now we need to iterate through u->v edges and see which ones have 1, 1*)
-  let res = ref [] in
-  e_iter max_flow_graph (
-    fun {src; tgt; lbl=(f, _)} -> if f = 1 && src != source && tgt != target then
+  e_fold max_flow_graph (
+    fun acu {src; tgt; lbl=(f, _)} -> if f = 1 && src != source && tgt != target then
         let (u_name, _) = Hashtbl.find htu src in
         let (v_name, _) = Hashtbl.find htv tgt in
-        res := (u_name, v_name) :: !res
-  );
-  !res
-
+        (u_name, v_name) :: acu
+    else acu
+  ) []
+;;

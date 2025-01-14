@@ -51,7 +51,9 @@ let get_path_from_table cost_table gr tgt =
   let rec reverse_iter node =
     match Hashtbl.find cost_table node with
     | (_, None) -> []
-    | (_, Some next) -> match find_arc gr next node with | None -> failwith "Failed to find path" | Some path -> path :: reverse_iter next
+    | (_, Some next) -> match find_arc gr next node with
+      | None -> failwith "Failed to find path"
+      | Some path -> path :: reverse_iter next
   in
   reverse_iter tgt
 
