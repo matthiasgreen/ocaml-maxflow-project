@@ -3,7 +3,7 @@ open Tools
 open Path_find
 
 (* Add reverse edges to a (residual_flow: int, cost: int) graph.
-  For each edge, add an edge with (0, -cost) *)
+   For each edge, add an edge with (0, -cost) *)
 let add_reverse_edges gr = 
   e_fold gr (
     fun new_graph {src; tgt; lbl=(_, cost)} -> new_arc new_graph {src=tgt; tgt=src; lbl=(0, -cost)}
@@ -11,7 +11,7 @@ let add_reverse_edges gr =
 ;;
 
 (* Calculate the maximum flow along a path
-  It is equal to the minimum residual flow *)
+   It is equal to the minimum residual flow *)
 let flow_along_path path =
   List.fold_left (
     fun min_flow {lbl=(flow, _); _} -> Int.min min_flow flow  

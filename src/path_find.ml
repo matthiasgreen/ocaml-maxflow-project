@@ -4,7 +4,7 @@ open Tools
 module S = Set.Make (struct type t = id let compare = Stdlib.compare end)
 
 (* Update the hashtable with current cost.
-  Returns true if the program should continue searching this branch, otherwise false. *)
+   Returns true if the program should continue searching this branch, otherwise false. *)
 let visit_node hashtable node prev_node cost =
   (* If node has already been visited *)
   if Hashtbl.mem hashtable node

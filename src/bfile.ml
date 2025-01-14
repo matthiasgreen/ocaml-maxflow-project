@@ -129,10 +129,10 @@ let bp_to_file path (bp:(string * (string * int) list, string) bipartite_problem
   let rec print_res = function
     | [] -> ()
     | ((u_name, _), v_name) :: rest ->
-        Printf.fprintf outfile "%s -> %s\n" u_name v_name;
-        print_res rest
+      Printf.fprintf outfile "%s -> %s\n" u_name v_name;
+      print_res rest
   in
-  
+
   Printf.fprintf outfile "\tResources:\n";
   print_bp_resources bp.v;
 
@@ -141,5 +141,5 @@ let bp_to_file path (bp:(string * (string * int) list, string) bipartite_problem
 
   Printf.fprintf outfile "\n\tResult:\n";
   print_res bp_res;
-  
+
   close_out outfile
