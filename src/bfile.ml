@@ -100,15 +100,46 @@ let bp_from_file path =
   (* print_bp final_graph; *)
   final_graph
 
-let bp_to_file path bp_res =
+let bp_to_file path (bp:(string * (string * int) list, string) bipartite_problem) bp_res =
 
-    let outfile = open_out path in
+  let outfile = open_out path in
 
-    let rec export_lines = function
-    | [] -> close_out outfile
-    | ((u_name, _), v_name) :: rest -> 
+  (* print resources and their use *)
+  let rec print_bp_resources = function
+    | [] -> ()
+    | (v_name, v_quantity)::sl ->
+      let res_v_names_list = List.map (fun ((_, _), v_name) -> v_name) bp_res in
+      let v_name_list = List.filter (fun res_v_name -> res_v_name = v_name) res_v_names_list in
+      let v_usage = List.length v_name_list in
+      Printf.fprintf outfile "%s: %d/%d\n" v_name v_usage v_quantity;
+      print_bp_resources sl
+  in
+
+  (* print candidates and the usage of their request(s) *)
+  let rec print_bp_candidates = function
+    | [] -> ()
+    | ((u_name, _), u_quantity)::sl ->
+      let res_u_names_list = List.map (fun ((u_name, _), _) -> u_name) bp_res in
+      let u_name_list = List.filter (fun res_u_name -> res_u_name = u_name) res_u_names_list in
+      let u_usage = List.length u_name_list in
+      Printf.fprintf outfile "%s: %d/%d\n" u_name u_usage u_quantity;
+      print_bp_candidates sl
+  in
+
+  let rec print_res = function
+    | [] -> ()
+    | ((u_name, _), v_name) :: rest ->
         Printf.fprintf outfile "%s -> %s\n" u_name v_name;
-        export_lines rest
-    in
+        print_res rest
+  in
+  
+  Printf.fprintf outfile "\tResources:\n";
+  print_bp_resources bp.v;
 
-    export_lines bp_res
+  Printf.fprintf outfile "\n\tCandidates:\n";
+  print_bp_candidates bp.u;
+
+  Printf.fprintf outfile "\n\tResult:\n";
+  print_res bp_res;
+  
+  close_out outfile

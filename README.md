@@ -21,7 +21,7 @@ v Secu 2
 % 3 students who can take at most 2 courses
 
 u Matthias 2
-u Matheo 2
+u Mateo 2
 u Sacha 2
 
 % Course requests and rankings (costs)
@@ -29,9 +29,9 @@ e Matthias Ocaml 1
 e Matthias Secu 2
 e Matthias Java 3
 
-e Matheo Java 1
-e Matheo Ocaml 2
-e Matheo Secu 3
+e Mateo Java 1
+e Mateo Ocaml 2
+e Mateo Secu 3
 
 e Sacha Secu 1
 e Sacha Java 2
@@ -48,7 +48,7 @@ In this situation, the optimal way to assign the classes is:
 # Mateo -> Java
 ```
 
-Each student gets their top pick, and the remaining spot in the security course is assigned to Matthias, who ranked it higher than Matheo.
+Each student gets their top pick, and the remaining spot in the security course is assigned to Matthias, who ranked it higher than mateo.
 
 ## Explanation
 
@@ -64,7 +64,7 @@ flowchart LR
     source((Source))
 
     matthias((Matthias))
-    mateo((Matheo))
+    mateo((Mateo))
     sacha((Sacha))
 
     ocaml((Ocaml))
@@ -108,7 +108,7 @@ flowchart LR
     source((Source))
 
     matthias((Matthias))
-    mateo((Matheo))
+    mateo((mateo))
     sacha((Sacha))
 
     ocaml((Ocaml))

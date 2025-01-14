@@ -17,6 +17,6 @@ let () =
   let bp = bp_from_file infile in
   let res = solve_bipartite bp in
 
-  let () = bp_to_file outfile res in
+  let () = bp_to_file outfile bp res in
 
   ()
