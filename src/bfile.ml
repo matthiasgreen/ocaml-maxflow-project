@@ -100,3 +100,15 @@ let bp_from_file path =
   (* print_bp final_graph; *)
   final_graph
 
+let bp_to_file path bp_res =
+
+    let outfile = open_out path in
+
+    let rec export_lines = function
+    | [] -> close_out outfile
+    | ((u_name, _), v_name) :: rest -> 
+        Printf.fprintf outfile "%s -> %s\n" u_name v_name;
+        export_lines rest
+    in
+
+    export_lines bp_res
