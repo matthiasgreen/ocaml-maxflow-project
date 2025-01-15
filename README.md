@@ -146,4 +146,8 @@ Solving this graph for max-flow-min-cost allows us to choose the most optimal co
 There are multiple definitions for max-flow-min-cost:
 - Minimize the sum of edge_cost * edge_flow for the whole graph. This requires negative costs to be useful (otherwise will always return 0).
 - Maximize the flow in the configuration where sum of edge_cost * edge_flow is minimal. This is better suited for our application.
+
+## Ressources
+
+https://cp-algorithms.com/graph/min_cost_flow.html
  
